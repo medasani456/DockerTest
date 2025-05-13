@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Guessing Top 5 Game</title>
+<style>
+    :root {
+      --primary: #00bcd4;
+      --secondary: #ffffff;
+      --highlight: #ffeb3b;
+      --text: #212121;
+      --background: linear-gradient(to right, #f9d423, #ff4e50);
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --selected-bg: #ffc107;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: var(--background);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      overflow-y: auto;
+      padding-bottom: 250px; /* Space for fixed panel */
+    }
+    .header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+    .header h1 {
+      color: white;
+      background-color: #009688;
+      padding: 10px 30px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+    .controls, .score-display, .game-container {
+      width: 100%;
+      max-width: 1000px;
+    }
+    .question-text {
+      font-size: 28px;
+      font-weight: bold;
+      color: white;
+      margin: 20px auto;
+      text-align: center;
+      padding: 10px 20px;
+      background-color: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      margin: 8px;
+      background: var(--card-bg);
+      border: 2px solid var(--primary);
+      border-radius: 12px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+    }
+    .row:hover {
+      transform: scale(1.02);
+      background: #f1f8e9;
+    }
+    .row.revealed {
+      background: var(--highlight);
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+    input[type="file"] {
+      margin-top: 10px;
+    }
+    .top-panel {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1000px;
+      margin-bottom: 20px;
+    }
+    .leaderboard {
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      min-width: 250px;
+      text-align: center;
+      flex: 1;
+      margin-right: 20px;
+    }
+    .leaderboard-title {
+      margin: 0 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .leaderboard-items {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .leaderboard-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+    .leaderboard-item:nth-child(1) {
+      background: rgba(255, 215, 0, 0.2);
+      color: gold;
+    }
+    .leaderboard-item:nth-child(2) {
+      background: rgba(192, 192, 192, 0.2);
+      color: silver;
+    }
+    .leaderboard-item:nth-child(3) {
+      background: rgba(205, 127, 50, 0.2);
+      color: #cd7f32;
+    }
+    .timer-container {
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      font-size: 24px;
+      font-weight: bold;
+      min-width: 250px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .timer-progress {
+      width: 100%;
+      height: 10px;
+      background: #555;
+      border-radius: 5px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+    .timer-progress-fill {
+      height: 100%;
+      background: #4CAF50;
+      width: 100%;
+      transition: width 1s linear;
+    }
+    .timer-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .timer-inputs {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .timer-inputs input {
+      width: 60px;
+      text-align: center;
+    }
+    .right-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #263238;
+      color: white;
+      padding: 10px;
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      justify-content: center;
+      align-items: flex-start;
+      z-index: 100;
+      height: 300px;
+    }
+    .team-section {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+	  width: 30%;
+	 
+    }
+    .team-buttons-container {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .team-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+    .team-buttons button {
+      padding: 12px 20px;
+      font-size: 16px;
+      min-width: 120px;
+    }
+    .team-buttons button.selected {
+      background-color: var(--selected-bg);
+      color: black;
+      transform: scale(1.05);
+      box-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
+    }
+    .add-team-container {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: auto;
+    }
+    .add-team-container input {
+      flex: 1;
+      min-width: 200px;
+    }
+    .team-scores-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow-y: auto;
+    }
+    .team-score {
+      margin-bottom: 15px;
+      background: #37474f;
+      padding: 10px;
+      border-radius: 10px;
+      min-width: 250px;
+    }
+    .team-score h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+    .score-bar {
+      height: 16px;
+      background: #b0bec5;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+    .score-fill {
+      height: 100%;
+      width: 0;
+      background: #ff5722;
+      transition: width 0.3s ease-in-out;
+    }
+    .score-controls button {
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+  
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  margin: 30px 0;
+}
+.controls button {
+  font-size: 24px;
+  padding: 15px 40px;
+  background: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+.controls button:hover {
+  background: #e65100;
+}
+.controls button:active {
+  transform: scale(1.1);
+}
+.spacer {
+  height: 20px;
+}
+</style>
+</head>
+<body>
+<div class="main">
+<div class="header">
+<h1>Guess Top 5 Game</h1>
+<input accept=".xlsx,.csv" id="fileInput" type="file"/>
+</div>
+<div class="top-panel">
+<div class="leaderboard">
+<h3 class="leaderboard-title">🏆 Leaderboard</h3>
+<div class="leaderboard-items" id="leaderboardItems"></div>
+</div>
+<div class="timer-container" id="timerContainer">
+<div id="timerDisplay">30</div>
+<div class="timer-progress">
+<div class="timer-progress-fill" id="timerProgress"></div>
+</div>
+<div class="timer-controls">
+<button id="startTimer">Start</button>
+<button id="stopTimer">Stop</button>
+<button id="resetTimer">Reset</button>
+</div>
+<div class="timer-inputs">
+<div>
+<label>Time (sec)</label>
+<input id="questionTime" min="5" type="number" value="30"/>
+</div>
+</div>
+</div>
+</div>
+<div class="question-info" id="questionInfo"></div>
+<div class="question-text" id="questionText"></div>
+<div class="controls">
+<button id="prevBtn">Previous</button>
+<button id="nextBtn">Next</button>
+</div>
+<div class="game-container">
+<div class="board" id="board"></div>
+</div>
+</div>
+<div class="right-panel">
+<div class="team-section">
+<h3>Teams</h3>
+<div class="team-buttons-container">
+<div class="team-buttons" id="teamButtons"></div>
+<div class="add-team-container">
+<input id="newTeamName" placeholder="New Team Name" type="text"/>
+<button onclick="addTeam()">Add Team</button>
+</div>
+</div>
+</div>
+<div class="team-scores-container" id="teamScoreContainer"></div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const board = document.getElementById('board');
+    const questionText = document.getElementById('questionText');
+    const questionInfo = document.getElementById('questionInfo');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const teamButtons = document.getElementById('teamButtons');
+    const teamScoreContainer = document.getElementById('teamScoreContainer');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerProgress = document.getElementById('timerProgress');
+    const startTimerBtn = document.getElementById('startTimer');
+    const stopTimerBtn = document.getElementById('stopTimer');
+    const resetTimerBtn = document.getElementById('resetTimer');
+    const questionTimeInput = document.getElementById('questionTime');
+    const leaderboardItems = document.getElementById('leaderboardItems');
+
+    let questions = [];
+    let currentIndex = 0;
+    let revealed = [];
+    let teamScores = {};
+    let selectedTeam = '';
+    let teamNames = [];
+    let currentTeamIndex = 0;
+    let timer;
+    let timeLeft = 30;
+    let isRunning = false;
+    let totalTime = 30;
+    let beepSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...'); // Short beep sound
+
+    function renderTeamButtons() {
+      teamButtons.innerHTML = '';
+      teamNames = Object.keys(teamScores);
+      
+      if (teamNames.length === 0) {
+        selectedTeam = '';
+        return;
+      }
+      
+      // Ensure currentTeamIndex is within bounds
+      currentTeamIndex = currentTeamIndex % teamNames.length;
+      selectedTeam = teamNames[currentTeamIndex];
+      
+      teamNames.forEach((team, index) => {
+        const btn = document.createElement('button');
+        btn.textContent = team;
+        btn.className = selectedTeam === team ? 'selected' : '';
+        btn.onclick = () => {
+          currentTeamIndex = index;
+          selectedTeam = team;
+          renderTeamButtons();
+          updateLeaderboard();
+        };
+        teamButtons.appendChild(btn);
+      });
+    }
+
+    function selectNextTeam() {
+      if (teamNames.length === 0) return;
+      
+      currentTeamIndex = (currentTeamIndex + 1) % teamNames.length;
+      selectedTeam = teamNames[currentTeamIndex];
+      renderTeamButtons();
+      updateLeaderboard();
+    }
+
+    function renderTeamScores() {
+      teamScoreContainer.innerHTML = '';
+      Object.entries(teamScores).forEach(([team, score]) => {
+        const teamDiv = document.createElement('div');
+        teamDiv.className = 'team-score';
+
+        const heading = document.createElement('h2');
+        heading.innerHTML = `${team} Score: <span id="score_${team}">${score}</span>`;
+        teamDiv.appendChild(heading);
+
+        const bar = document.createElement('div');
+        bar.className = 'score-bar';
+        const fill = document.createElement('div');
+        fill.className = 'score-fill';
+        fill.id = `fill_${team}`;
+        fill.style.width = `${Math.min(100, score)}%`;
+        bar.appendChild(fill);
+        teamDiv.appendChild(bar);
+
+        const revertBtn = document.createElement('button');
+        revertBtn.textContent = 'Revert';
+        revertBtn.onclick = () => revertScore(team);
+        teamDiv.appendChild(revertBtn);
+
+        teamScoreContainer.appendChild(teamDiv);
+      });
+      updateLeaderboard();
+    }
+
+    // Update leaderboard
+    function updateLeaderboard() {
+      const sortedTeams = Object.entries(teamScores)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+      
+      leaderboardItems.innerHTML = '';
+      if (sortedTeams.length === 0) {
+        const item = document.createElement('div');
+        item.className = 'leaderboard-item';
+        item.textContent = 'No teams yet';
+        leaderboardItems.appendChild(item);
+        return;
+      }
+
+      sortedTeams.forEach(([team, score], index) => {
+        const item = document.createElement('div');
+        item.className = 'leaderboard-item';
+        item.innerHTML = `<span>${index + 1}. ${team}</span> <span>${score} pts</span>`;
+        leaderboardItems.appendChild(item);
+      });
+    }
+
+    function addTeam() {
+      const teamName = document.getElementById('newTeamName').value.trim();
+      if (teamName && !teamScores[teamName]) {
+        teamScores[teamName] = 0;
+        document.getElementById('newTeamName').value = '';
+        renderTeamButtons();
+        renderTeamScores();
+        
+        // If this is the first team added, select it
+        if (teamNames.length === 1) {
+          selectedTeam = teamName;
+          currentTeamIndex = 0;
+          renderTeamButtons();
+        }
+      }
+    }
+
+    function revertScore(team) {
+      const input = prompt("Enter score to revert for Team " + team + ":", "0");
+      const val = parseInt(input);
+      if (!isNaN(val) && teamScores[team] !== undefined) {
+        teamScores[team] = Math.max(0, teamScores[team] - val);
+        updateScore();
+      }
+    }
+
+    function updateScore() {
+	  logScores();
+      Object.entries(teamScores).forEach(([team, score]) => {
+        document.getElementById(`score_${team}`).textContent = score;
+        document.getElementById(`fill_${team}`).style.width = `${Math.min(100, score)}%`;
+      });
+      updateLeaderboard();
+    }
+
+    fileInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = evt => {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        questions = XLSX.utils.sheet_to_json(sheet);
+        loadQuestion(0);
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    prevBtn.onclick = () => {
+      if (currentIndex > 0) loadQuestion(--currentIndex);
+    };
+
+    nextBtn.onclick = () => {
+      if (currentIndex < questions.length - 1) loadQuestion(++currentIndex);
+    };
+
+    function startTimer() {
+      if (isRunning) return;
+      isRunning = true;
+      timeLeft = parseInt(questionTimeInput.value);
+      totalTime = timeLeft;
+      timerDisplay.textContent = timeLeft;
+      timerProgress.style.width = '100%';
+      timerProgress.style.transition = 'none';
+      setTimeout(() => {
+        timerProgress.style.transition = `width ${timeLeft}s linear`;
+        timerProgress.style.width = '0%';
+      }, 10);
+      
+      timer = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = timeLeft;
+        
+        // Play beep sound for last 5 seconds
+        if (timeLeft <= 5 && timeLeft > 0) {
+          beepSound.play().catch(e => console.log("Couldn't play beep sound:", e));
+        }
+        
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          isRunning = false;
+          // Auto move to next question when time's up
+          if (currentIndex < questions.length - 1) {
+            loadQuestion(++currentIndex);
+          }
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timer);
+      isRunning = false;
+      timerProgress.style.transition = 'none';
+    }
+
+    function resetTimer() {
+      stopTimer();
+      timeLeft = parseInt(questionTimeInput.value);
+      totalTime = timeLeft;
+      timerDisplay.textContent = timeLeft;
+      timerProgress.style.width = '100%';
+      timerProgress.style.transition = 'none';
+      setTimeout(() => {
+        timerProgress.style.transition = `width ${timeLeft}s linear`;
+        timerProgress.style.width = '0%';
+      }, 10);
+      startTimer();
+    }
+
+	function logScores() {
+      const now = new Date();
+      const timestamp = now.toLocaleString();
+      let logEntry = timestamp;
+      Object.entries(teamScores).forEach(([team, score]) => {
+        logEntry += ` | ${team}: ${score}`;
+      });
+      console.log(logEntry);
+      const prevLog = localStorage.getItem('scoreLog') || '';
+      localStorage.setItem('scoreLog', prevLog + logEntry + '\\n');
+    }
+
+    
+	
+    function loadQuestion(index) {
+      currentIndex = index;
+      revealed = [];
+      const q = questions[index];
+      questionInfo.textContent = `${index + 1}/${questions.length}`;
+      questionText.textContent = q.Question;
+      board.innerHTML = '';
+
+      for (let i = 1; i <= 5; i++) {
+        const row = document.createElement('div');
+        row.className = 'row';
+        const answer = q[`Option${i}`];
+        const score = parseInt(q[`Score${i}`]);
+        row.innerHTML = `<span>${i}.</span> <span class="answer-text">${answer}</span> <span>+${score}</span>`;
+        row.querySelector('.answer-text').style.display = 'none';
+
+        row.onclick = () => {
+          if (!revealed[i]) {
+            row.classList.add('revealed');
+            row.querySelector('.answer-text').style.display = 'inline';
+            revealed[i] = true;
+            if (selectedTeam && teamScores[selectedTeam] !== undefined) {
+              teamScores[selectedTeam] += score;
+              updateScore();
+            }
+            // Reset timer and move to next team when an answer is clicked
+            resetTimer();
+            selectNextTeam();
+          }
+        };
+        board.appendChild(row);
+      }
+      
+      // Start timer automatically when question loads
+      resetTimer();
+    }
+
+    startTimerBtn.addEventListener('click', startTimer);
+    stopTimerBtn.addEventListener('click', stopTimer);
+    resetTimerBtn.addEventListener('click', resetTimer);
+
+    // Initialize timer display
+    timerDisplay.textContent = questionTimeInput.value;
+    timerProgress.style.width = '100%';
+
+    // Base64 encoded short beep sound
+    beepSound.src = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...';
+  </script>
+</body>
+</html>
