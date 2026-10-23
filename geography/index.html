@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geography Quizzes</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <a href="#" class="logo" id="home-link">🌐 Geo<span>Quiz</span></a>
+  <nav><a href="../">Top 5 Game</a></nav>
+</header>
+
+<main>
+  <!-- Landing: category hero + quiz card grid -->
+  <section id="screen-home" class="screen active">
+    <div class="hero">
+      <h1>Geography Quizzes</h1>
+      <p>Flags, capitals and continents. Answer fast, the quicker you are the more points you get.</p>
+    </div>
+    <div class="grid" id="quiz-grid"></div>
+  </section>
+
+  <!-- Lobby: pick length before starting -->
+  <section id="screen-lobby" class="screen">
+    <div class="lobby card">
+      <div class="lobby-emoji" id="lobby-emoji"></div>
+      <h2 id="lobby-title"></h2>
+      <p id="lobby-desc"></p>
+      <p class="best" id="lobby-best"></p>
+      <div class="length-picker" id="length-picker">
+        <button data-len="10" class="chip active">10 questions</button>
+        <button data-len="20" class="chip">20 questions</button>
+        <button data-len="30" class="chip">30 questions</button>
+      </div>
+      <button class="btn-primary" id="start-btn">Start quiz</button>
+      <button class="btn-link" id="back-btn">← All quizzes</button>
+    </div>
+  </section>
+
+  <!-- Question -->
+  <section id="screen-play" class="screen">
+    <div class="play-head">
+      <span id="q-counter"></span>
+      <span id="q-streak" class="streak"></span>
+      <span id="q-score" class="score"></span>
+    </div>
+    <div class="timer"><div class="timer-fill" id="timer-fill"></div></div>
+    <div class="prompt card">
+      <h2 id="q-text"></h2>
+      <div id="q-media"></div>
+    </div>
+    <div class="answers" id="answers"></div>
+    <div class="feedback" id="feedback"></div>
+  </section>
+
+  <!-- Results -->
+  <section id="screen-results" class="screen">
+    <div class="card results">
+      <h2>Quiz complete!</h2>
+      <div class="big-score" id="r-score"></div>
+      <div class="stats" id="r-stats"></div>
+      <div class="review" id="r-review"></div>
+      <div class="row">
+        <button class="btn-primary" id="again-btn">Play again</button>
+        <button class="btn-secondary" id="home-btn">All quizzes</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
